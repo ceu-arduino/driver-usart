@@ -92,7 +92,6 @@ end
 code/await Usart_TX (var&[] byte buf) -> none
 do
     lock outer.ceu_usart_lock do
-#ifdef CEU_FEATURES_ISR_SLEEP
         outer.ceu_usart_pm_refs = outer.ceu_usart_pm_refs + 1;
         {ceu_pm_set(CEU_PM_USART, 1);}
         do finalize with
@@ -101,7 +100,6 @@ do
                 {ceu_pm_set(CEU_PM_USART, 0);}
             end
         end
-#endif
 
         var usize i;
         loop i in [0->$buf[ do
@@ -121,7 +119,6 @@ end
 
 code/await Usart_RX (var&[] byte buf, var usize? n) -> none
 do
-#ifdef CEU_FEATURES_ISR_SLEEP
     outer.ceu_usart_pm_refs = outer.ceu_usart_pm_refs + 1;
     {ceu_pm_set(CEU_PM_USART, 1);}
     do finalize with
@@ -130,7 +127,6 @@ do
             {ceu_pm_set(CEU_PM_USART, 0);}
         end
     end
-#endif
 
     loop do
         atomic do
