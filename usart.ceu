@@ -1,0 +1,12 @@
+#ifndef CEU_USART_BUF_N
+#define CEU_USART_BUF_N 32
+#endif
+
+output (on/off,int?) USART;
+output byte          USART_TX_REQUEST;
+input  none          USART_TX_DONE;
+input  none          USART_RX;
+
+code/await Usart    (var int bps)                   -> NEVER;
+code/await Usart_TX (var&[] byte buf)               -> none;
+code/await Usart_RX (var&[] byte buf, var usize? n) -> none;
