@@ -1,8 +1,16 @@
-/* TODO: only working with original Arduino */
-
-#include "pin_02.ceu"
 #include "wclock.ceu"
 #include "usart.ceu"
+
+#if 1
+#define PIN PIN_02
+#include "pin_02.ceu"
+#elif 0
+#define PIN PIN_03
+#include "pin_03.ceu"
+#elif 0
+#define PIN PIN_10
+#include "pin_10.ceu"
+#endif
 
 output bool PIN_13;
 
@@ -24,13 +32,13 @@ spawn do
 end
 #endif
 
-watching PIN_02 do
+watching PIN do
     loop do
         //emit PIN_13({!digitalRead(13)} as bool);
         par/and do
             await 1s;
         with
-            var[20] byte str = [].."Hello World!\n";
+            var[20] byte str = [].."Hello World!\r\n";
             await Usart_TX(&str);
         end
     end
@@ -38,7 +46,7 @@ end
 
 await 1s;
 
-watching PIN_02 do
+watching PIN do
     loop do
         var[20] byte str = [];
         await Usart_RX(&str, _);
