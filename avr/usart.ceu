@@ -25,6 +25,8 @@ var[CEU_USART_BUF_N*] byte ceu_usart_tx_buf;
 // INPUT / OUTPUT
 ///////////////////////////////////////////////////////////////////////////////
 
+native _UDR0;
+
 output (on/off v, int? bps) USART do
     if v then
         outer.ceu_usart_bps = bps!;
@@ -53,6 +55,9 @@ output (byte v) USART_TX_REQUEST do
         end
     end
 end
+
+native/const _USART0_RX_vect, _USART_RX_vect;
+native/const _USART0_TX_vect, _USART_TX_vect;
 
 #ifdef ARDUINO_BOARD_MEGA
 spawn async/isr [_USART0_RX_vect]
@@ -103,7 +108,7 @@ do
 
         var usize i;
         loop i in [0->$buf[ do
-            _ceu_assert(_UCSR0A & (1<<_UDRE0), "bug found");
+            {ceu_assert(UCSR0A & (1<<UDRE0), "bug found");}
             emit USART_TX_REQUEST(buf[i]);
             await USART_TX_DONE;
         end

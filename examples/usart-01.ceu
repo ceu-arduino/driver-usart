@@ -1,74 +1,9 @@
-#include "wclock.ceu"
 #include "usart.ceu"
-
-#if 1
-#define PIN PIN_02
-#include "pin_02.ceu"
-#elif 0
-#define PIN PIN_03
-#include "pin_03.ceu"
-#elif 0
-#define PIN PIN_10
-#include "pin_10.ceu"
-#endif
-
-output bool PIN_13;
 
 spawn Usart(9600);
 
-// heavy loop to evaluate ISR responsiveness
-#if 0
-spawn do
-    await async     // comment to freeze synchronous code in tight loop
-    do
-        var int v = 0;
-        loop do
-            v = 1 - v;
-            _digitalWrite(13,v);
-            //emit PIN_13(v);
-            DELAY(1000);
-        end
-    end
-end
-#endif
-
-watching PIN do
-    loop do
-        //emit PIN_13({!digitalRead(13)} as bool);
-        par/and do
-            await 1s;
-        with
-            var[20] byte str = [].."Hello World!\r\n";
-            await Usart_TX(&str);
-        end
-    end
-end
-
-await 1s;
-
-watching PIN do
-    loop do
-        var[20] byte str = [];
-        await Usart_RX(&str, _);
-        await Usart_TX(&str);
-    end
-end
-
-// should tx up to 1-5\n
-watching 8ms do
-    var[20] byte str = [].."12345\n67890";
+loop do
+    var[20] byte str = [];
+    await Usart_RX(&str, _);
     await Usart_TX(&str);
 end
-
-// print both in sequence
-var[20] byte str = [].."Hello World!\n";
-par/and do
-    await Usart_TX(&str);
-with
-    await Usart_TX(&str);
-end
-
-var[20] byte str = [].."ok!\n";
-await Usart_TX(&str);
-
-await FOREVER;
