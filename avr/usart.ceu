@@ -14,12 +14,12 @@ native/pre do
 #endif
 end
 
-var Lock ceu_usart_lock;
-var int  ceu_usart_bps     = _;
-var u8   ceu_usart_pm_refs = 0;
+var Lock usart_lock;
+var int  usart_bps     = _;
+var u8   usart_pm_refs = 0;
 
-var[CEU_USART_BUF_N*] byte ceu_usart_rx_buf;
-var[CEU_USART_BUF_N*] byte ceu_usart_tx_buf;
+var[CEU_USART_BUF_N*] byte usart_rx_buf;
+var[CEU_USART_BUF_N*] byte usart_tx_buf;
 
 ///////////////////////////////////////////////////////////////////////////////
 // INPUT / OUTPUT
@@ -29,7 +29,7 @@ native _UDR0;
 
 output (on/off v, int? bps) USART do
     if v then
-        outer.ceu_usart_bps = bps!;
+        outer.usart_bps = bps!;
         {
             UCSR0A = 1 << U2X0;
 
@@ -49,8 +49,8 @@ end
 
 output (byte v) USART_TX_REQUEST do
     atomic do
-        outer.ceu_usart_tx_buf = outer.ceu_usart_tx_buf .. [v];
-        if $outer.ceu_usart_tx_buf == 1 then
+        outer.usart_tx_buf = outer.usart_tx_buf .. [v];
+        if $outer.usart_tx_buf == 1 then
             _UDR0 = v;
         end
     end
@@ -65,7 +65,7 @@ spawn async/isr [_USART0_RX_vect]
 spawn async/isr [_USART_RX_vect]
 #endif
 do
-    outer.ceu_usart_rx_buf = outer.ceu_usart_rx_buf .. [_UDR0];
+    outer.usart_rx_buf = outer.usart_rx_buf .. [_UDR0];
     emit USART_RX;
 end
 
@@ -75,9 +75,9 @@ spawn async/isr [_USART0_TX_vect]
 spawn async/isr [_USART_TX_vect]
 #endif
 do
-    $outer.ceu_usart_tx_buf = $outer.ceu_usart_tx_buf - 1;
-    if $outer.ceu_usart_tx_buf > 0 then
-        _UDR0 = outer.ceu_usart_tx_buf[0];
+    $outer.usart_tx_buf = $outer.usart_tx_buf - 1;
+    if $outer.usart_tx_buf > 0 then
+        _UDR0 = outer.usart_tx_buf[0];
     end
     emit USART_TX_DONE;
 end
@@ -96,12 +96,12 @@ end
 
 code/await Usart_TX (var&[] byte buf) -> none
 do
-    lock outer.ceu_usart_lock do
-        outer.ceu_usart_pm_refs = outer.ceu_usart_pm_refs + 1;
+    lock outer.usart_lock do
+        outer.usart_pm_refs = outer.usart_pm_refs + 1;
         {ceu_pm_set(CEU_PM_USART, 1);}
         do finalize with
-            outer.ceu_usart_pm_refs = outer.ceu_usart_pm_refs - 1;
-            if outer.ceu_usart_pm_refs == 0 then
+            outer.usart_pm_refs = outer.usart_pm_refs - 1;
+            if outer.usart_pm_refs == 0 then
                 {ceu_pm_set(CEU_PM_USART, 0);}
             end
         end
@@ -113,7 +113,7 @@ do
             await USART_TX_DONE;
         end
         loop do
-            if $outer.ceu_usart_tx_buf == 0 then
+            if $outer.usart_tx_buf == 0 then
                 break;
             end
             await USART_TX_DONE;
@@ -124,19 +124,19 @@ end
 
 code/await Usart_RX (var&[] byte buf, var usize? n) -> none
 do
-    outer.ceu_usart_pm_refs = outer.ceu_usart_pm_refs + 1;
+    outer.usart_pm_refs = outer.usart_pm_refs + 1;
     {ceu_pm_set(CEU_PM_USART, 1);}
     do finalize with
-        outer.ceu_usart_pm_refs = outer.ceu_usart_pm_refs - 1;
-        if outer.ceu_usart_pm_refs == 0 then
+        outer.usart_pm_refs = outer.usart_pm_refs - 1;
+        if outer.usart_pm_refs == 0 then
             {ceu_pm_set(CEU_PM_USART, 0);}
         end
     end
 
     loop do
         atomic do
-            buf = buf..outer.ceu_usart_rx_buf;
-            outer.ceu_usart_rx_buf = [];
+            buf = buf..outer.usart_rx_buf;
+            outer.usart_rx_buf = [];
         end
         if (n? and $buf>=n!) or ((not n?) and $buf>0) then
             break;
