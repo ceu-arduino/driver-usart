@@ -31,7 +31,7 @@ end
 
 watching PIN do
     loop do
-        //emit PIN_13({!digitalRead(13)} as bool);
+        //emit PIN_13({!digitalRead(13)});
         par/and do
             await 1s;
         with
