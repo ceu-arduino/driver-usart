@@ -8,9 +8,9 @@
 
 native/pre do
 #ifdef __AVR_ATmega644P__
-    ##define CEU_USART_BAUD(bps) (((F_CPU / (bps*16UL))) - 1)
+    ##define USART_BAUD(bps) (((F_CPU / (bps*16UL))) - 1)
 #else
-    ##define CEU_USART_BAUD(bps) ((F_CPU/4/bps - 1) / 2)
+    ##define USART_BAUD(bps) ((F_CPU/4/bps - 1) / 2)
 #endif
 end
 
@@ -18,8 +18,8 @@ var Lock usart_lock;
 var int  usart_bps     = _;
 var u8   usart_pm_refs = 0;
 
-var[CEU_USART_BUF_N*] byte usart_rx_buf;
-var[CEU_USART_BUF_N*] byte usart_tx_buf;
+var[USART_BUF_N*] byte usart_rx_buf;
+var[USART_BUF_N*] byte usart_tx_buf;
 
 ///////////////////////////////////////////////////////////////////////////////
 // INPUT / OUTPUT
@@ -33,8 +33,8 @@ output (on/off v, int? bps) USART do
         {
             UCSR0A = 1 << U2X0;
 
-            UBRR0H = (CEU_USART_BAUD(@bps!)>>8);  // set baud rate
-            UBRR0L = (CEU_USART_BAUD(@bps!));
+            UBRR0H = (USART_BAUD(@bps!)>>8);        // set baud rate
+            UBRR0L = (USART_BAUD(@bps!));
             UCSR0C = (1<<USBS0) | (3<<UCSZ00);      // 8data, 2stop-bit
 
             UCSR0B = (1<<RXEN0)  | (1<<TXEN0)       // enable RX/TX

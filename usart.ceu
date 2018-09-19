@@ -1,5 +1,5 @@
-#ifndef CEU_USART_BUF_N
-#define CEU_USART_BUF_N 32
+#ifndef USART_BUF_N
+#define USART_BUF_N 32
 #endif
 
 output (on/off,int?) USART;

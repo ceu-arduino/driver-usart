@@ -1,15 +1,9 @@
-#include "gpio.ceu"
+#include "out.ceu"
+#include "int0.ceu"
 #include "wclock.ceu"
 #include "usart.ceu"
 
-#define PIN PIN_02
-#include "pin_02.ceu"
-//#define PIN PIN_03
-//#include "pin_03.ceu"
-//#define PIN PIN_10
-//#include "pin_10.ceu"
-
-output bool PIN_13;
+output high/low OUT_13;
 
 spawn Usart(9600);
 
@@ -22,16 +16,16 @@ spawn do
         loop do
             v = 1 - v;
             _digitalWrite(13,v);
-            //emit PIN_13(v);
+            //emit OUT_13(v);
             DELAY(1000);
         end
     end
 end
 #endif
 
-watching PIN do
+watching INT0 do
     loop do
-        //emit PIN_13({!digitalRead(13)});
+        //emit OUT_13({!digitalRead(13)});
         par/and do
             await 1s;
         with
@@ -43,7 +37,7 @@ end
 
 await 1s;
 
-watching PIN do
+watching INT0 do
     loop do
         var[20] byte str = [];
         await Usart_RX(&str, _);
@@ -52,7 +46,7 @@ watching PIN do
 end
 
 // should tx up to 1-5\n
-watching 8ms do
+watching 11ms do
     var[20] byte str = [].."12345\n67890";
     await Usart_TX(&str);
 end
