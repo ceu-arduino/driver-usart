@@ -1,21 +1,73 @@
 # USART (Universal Synchronous and Asynchronous Receiver-Transmitter)
 
-## Summary
+## API
 
-- Includes
+### Macros
 
-```
-#include "usart.ceu"                                            // must always be included
-```
-
-- Code Abstractions
+This optional macro must be defined before including the driver:
 
 ```
-code/await Usart    (var int bps)                   -> NEVER    // enables USART
-code/await Usart_TX (var&[] byte buf)               -> none     // transmits buffer
-code/await Usart_RX (var&[] byte buf, var usize? n) -> none     // receives at least n bytes into buffer
+#define USART_BUF_N <fill-with-buffer-size>
 ```
 
-## Introduction
+The default size is `32` bytes.
 
-`TODO`
+### Includes
+
+```
+#include "usart.ceu"
+```
+
+### Code Abstractions
+
+#### Usart
+
+Initializes the USART.
+
+```
+code/await Usart (var int bps) -> NEVER;
+```
+
+Parameters:
+
+- `int`: transmission speed in `bps`
+
+Return:
+
+- `NEVER`: never returns
+
+#### Usart_TX
+
+Transmits a given buffer.
+
+```
+code/await Usart_TX (var&[] byte buf) -> none;
+```
+
+Parameters:
+
+- `&[] byte`: reference to buffer to transmit
+
+Return:
+
+- `none`: as soon as the transmission terminates
+
+The given buffer is copied to the driver buffer, which transmits the bytes in
+the background.
+
+#### Usart_RX
+
+Receives incoming bytes to a given buffer.
+
+```
+code/await Usart_RX (var&[] byte buf, var usize? n) -> none;
+```
+
+Parameters:
+
+- `&[] byte`: reference to buffer to receive
+- `usize?`:   minimum number of bytes to receive (default: as soon as something is received)
+
+Return:
+
+- `none`: as soon as the requested number of bytes is received
