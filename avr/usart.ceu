@@ -29,6 +29,9 @@ end
 
 native _UDR0;
 
+input none USART_RX;
+input none USART_TX_DONE;
+
 native/const _USART0_RX_vect, _USART_RX_vect;
 native/const _USART0_TX_vect, _USART_TX_vect;
 
