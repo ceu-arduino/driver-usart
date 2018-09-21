@@ -45,9 +45,9 @@ watching INT0 do
     end
 end
 
-// should tx up to 1-5\n
-watching 11ms do
-    var[20] byte str = [].."12345\n67890";
+// should tx up to 1-4\n
+watching 6ms do
+    var[20] byte str = [].."1234\n567890";
     await Usart_TX(&str);
 end
 

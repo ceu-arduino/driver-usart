@@ -2,6 +2,8 @@
 
 /* TODO: only working with original Arduino */
 
+// TODO: rename Usart->USART_Init, Usart_Rx->USART_Rx, etc
+
 ///////////////////////////////////////////////////////////////////////////////
 // INITIALIZATION
 ///////////////////////////////////////////////////////////////////////////////
@@ -47,15 +49,6 @@ output (on/off v, int? bps) USART do
     end
 end
 
-output (byte v) USART_TX_REQUEST do
-    atomic do
-        outer.usart_tx_buf = outer.usart_tx_buf .. [v];
-        if $outer.usart_tx_buf == 1 then
-            _UDR0 = v;
-        end
-    end
-end
-
 native/const _USART0_RX_vect, _USART_RX_vect;
 native/const _USART0_TX_vect, _USART_TX_vect;
 
@@ -78,8 +71,9 @@ do
     $outer.usart_tx_buf = $outer.usart_tx_buf - 1;
     if $outer.usart_tx_buf > 0 then
         _UDR0 = outer.usart_tx_buf[0];
+    else
+        emit USART_TX_DONE;
     end
-    emit USART_TX_DONE;
 end
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -104,21 +98,13 @@ do
             if outer.usart_pm_refs == 0 then
                 {ceu_pm_set(CEU_PM_USART, 0);}
             end
+            $outer.usart_tx_buf = 0;
         end
 
-        var usize i;
-        loop i in [0->$buf[ do
-            {ceu_assert(UCSR0A & (1<<UDRE0), "bug found");}
-            emit USART_TX_REQUEST(buf[i]);
-            await USART_TX_DONE;
-        end
-        loop do
-            if $outer.usart_tx_buf == 0 then
-                break;
-            end
-            await USART_TX_DONE;
-            {digitalWrite(13, !digitalRead(13));}
-        end
+        {ceu_assert(UCSR0A & (1<<UDRE0), "bug found");}
+        outer.usart_tx_buf = []..buf;
+        _UDR0 = buf[0];
+        await USART_TX_DONE;
     end
 end
 
