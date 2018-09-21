@@ -5,7 +5,7 @@
 
 output high/low OUT_13;
 
-spawn Usart(9600);
+spawn USART_Init(9600);
 
 // heavy loop to evaluate ISR responsiveness
 #if 0
@@ -30,7 +30,7 @@ watching INT0 do
             await 1s;
         with
             var[20] byte str = [].."Hello World!\r\n";
-            await Usart_TX(&str);
+            await USART_Tx(&str);
         end
     end
 end
@@ -40,26 +40,26 @@ await 1s;
 watching INT0 do
     loop do
         var[20] byte str = [];
-        await Usart_RX(&str, _);
-        await Usart_TX(&str);
+        await USART_Rx(&str, _);
+        await USART_Tx(&str);
     end
 end
 
 // should tx up to 1-4\n
 watching 6ms do
     var[20] byte str = [].."1234\n567890";
-    await Usart_TX(&str);
+    await USART_Tx(&str);
 end
 
 // print both in sequence
 var[20] byte str = [].."Hello World!\n";
 par/and do
-    await Usart_TX(&str);
+    await USART_Tx(&str);
 with
-    await Usart_TX(&str);
+    await USART_Tx(&str);
 end
 
 var[20] byte str = [].."ok!\n";
-await Usart_TX(&str);
+await USART_Tx(&str);
 
 await FOREVER;

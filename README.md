@@ -7,7 +7,7 @@
 This optional macro must be defined before including the driver:
 
 ```
-#define USART_BUF_N <fill-with-buffer-size>
+#define USART_RX_BUF_N <fill-with-buffer-size>
 ```
 
 The default size is `32` bytes.
@@ -20,12 +20,12 @@ The default size is `32` bytes.
 
 ### Code Abstractions
 
-#### Usart
+#### USART_Init
 
 Initializes the USART.
 
 ```
-code/await Usart (var int bps) -> NEVER;
+code/await USART_Init (var int bps) -> NEVER;
 ```
 
 Parameters:
@@ -36,12 +36,12 @@ Return:
 
 - `NEVER`: never returns
 
-#### Usart_TX
+#### USART_Tx
 
 Transmits a given buffer.
 
 ```
-code/await Usart_TX (var&[] byte buf) -> none;
+code/await USART_Tx (var&[] byte buf) -> none;
 ```
 
 Parameters:
@@ -55,12 +55,12 @@ Return:
 The given buffer is copied to the driver buffer, which transmits the bytes in
 the background.
 
-#### Usart_RX
+#### USART_Rx
 
 Receives incoming bytes to a given buffer.
 
 ```
-code/await Usart_RX (var&[] byte buf, var usize? n) -> none;
+code/await USART_Rx (var&[] byte buf, var usize? n) -> none;
 ```
 
 Parameters:
@@ -71,3 +71,7 @@ Parameters:
 Return:
 
 - `none`: as soon as the requested number of bytes is received
+
+## Examples
+
+`TODO`

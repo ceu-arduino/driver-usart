@@ -2,7 +2,7 @@
 #include "usart.ceu"
 #include "string.ceu"
 
-spawn Usart(9600);
+spawn USART_Init(9600);
 
 var int i;
 loop i do
@@ -16,6 +16,6 @@ loop i do
     call String_Append_INT(&str, i, 2);
     call String_Append_STR(&str, "\n\r");
 
-    await Usart_TX(&str);
+    await USART_Tx(&str);
     await 250ms;
 end

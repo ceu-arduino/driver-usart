@@ -1,14 +1,14 @@
 #include "wclock.ceu"
 #include "usart.ceu"
 
-spawn Usart(9600);
+spawn USART_Init(9600);
 
 loop do
     var[20] byte str = [].."Hello World!\n";
     par/and do
-        await Usart_TX(&str);
+        await USART_Tx(&str);
     with
-        await Usart_TX(&str);
+        await USART_Tx(&str);
     end
     await 1s;
 end

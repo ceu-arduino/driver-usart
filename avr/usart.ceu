@@ -2,8 +2,6 @@
 
 /* TODO: only working with original Arduino? I guess it is ok now. */
 
-// TODO: rename Usart->USART_Init, Usart_Rx->USART_Rx, etc
-
 ///////////////////////////////////////////////////////////////////////////////
 // INITIALIZATION
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,10 +15,9 @@ native/pre do
 end
 
 var Lock usart_lock;
-var int  usart_bps     = _;
 var u8   usart_pm_refs = 0;
 
-var[USART_BUF_N*] byte usart_rx_buf;
+var[USART_RX_BUF_N*] byte usart_rx_buf;
 native/pos do
     tceu_vector* usart_tx_buf;
     usize        usart_tx_buf_i;
@@ -31,23 +28,6 @@ end
 ///////////////////////////////////////////////////////////////////////////////
 
 native _UDR0;
-
-output (on/off v, int? bps) USART do
-    if v then
-        outer.usart_bps = bps!;
-        {
-            UCSR0A = 1 << U2X0;
-            UBRR0H = (USART_BAUD(@bps!)>>8);    // set baud rate
-            UBRR0L = (USART_BAUD(@bps!));
-            UCSR0C = (1<<USBS0) | (3<<UCSZ00);  // 8data, 2stop-bit
-            UCSR0B = (1<<RXEN0) | (1<<RXCIE0);  // enables RX & ISRS
-        }
-    else
-        {
-            UCSR0B = 0;                         // disable TX/RX & ISRS
-        }
-    end
-end
 
 native/const _USART0_RX_vect, _USART_RX_vect;
 native/const _USART0_TX_vect, _USART_TX_vect;
@@ -80,15 +60,23 @@ end
 // ABSTRACTIONS
 ///////////////////////////////////////////////////////////////////////////////
 
-code/await Usart (var int bps) -> NEVER do
-    emit USART(on, bps);
+code/await USART_Init (var int bps) -> NEVER do
+    {
+        UCSR0A = 1 << U2X0;
+        UBRR0H = (USART_BAUD(@bps)>>8);    // set baud rate
+        UBRR0L = (USART_BAUD(@bps));
+        UCSR0C = (1<<USBS0) | (3<<UCSZ00);  // 8data, 2stop-bit
+        UCSR0B = (1<<RXEN0) | (1<<RXCIE0);  // enables RX & ISRS
+    }
     do finalize with
-        emit USART(off, _);
+        {
+            UCSR0B = 0;                     // disables TX/RX & ISRS
+        }
     end
     await FOREVER;
 end
 
-code/await Usart_TX (var&[] byte buf) -> none
+code/await USART_Tx (var&[] byte buf) -> none
 do
     lock outer.usart_lock do
         outer.usart_pm_refs = outer.usart_pm_refs + 1;
@@ -115,7 +103,7 @@ do
     end
 end
 
-code/await Usart_RX (var&[] byte buf, var usize? n) -> none
+code/await USART_Rx (var&[] byte buf, var usize? n) -> none
 do
     outer.usart_pm_refs = outer.usart_pm_refs + 1;
     {ceu_pm_set(CEU_PM_USART, 1);}

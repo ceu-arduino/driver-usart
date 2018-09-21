@@ -1,5 +1,5 @@
-#ifndef USART_BUF_N
-#define USART_BUF_N 32
+#ifndef USART_RX_BUF_N
+#define USART_RX_BUF_N 32
 #endif
 
 output (on/off,int?) USART;
